@@ -5,12 +5,17 @@ class Media(object):
 
 
 class FileUdf(object):
-    def __init__(self, udf, entry):
+    def __init__(self, udf, dir, name):
         self._udf = udf
-        self._location = entry.ad[0].location_absolute
+        self.name = name
+
+        self.location = dir[name].entry.ad[0].location_absolute
+
+    def __repr__(self):
+        return '<FileUdf %r; location %d>' % (self.name, self.location)
 
     def read(self, sector, count=1):
-        return self._udf.read_sector(self._location + sector, count * 2048)
+        return self._udf.read_sector(self.location + sector, count * 2048)
 
 
 class MediaUdf(Media):
@@ -21,7 +26,7 @@ class MediaUdf(Media):
         self._dir = self.udf.volume.partitions[0].fileset.root.tree['VIDEO_TS'].entry.tree
 
     def file(self, name):
-        return FileUdf(self.udf, self._dir[name].entry)
+        return FileUdf(self.udf, self._dir, name)
 
     def vmg(self):
         return VmgUdf(self)
