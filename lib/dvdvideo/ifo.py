@@ -58,7 +58,7 @@ class VtsIfoHeader(object):
 
 class _Ifo(object):
     def dump(self):
-        return self._file.dump(self.header.part_ifo_end + 1)
+        return self._file.dump(self.header.part_ifo_end + 1),
 
     
 class VmgIfo(_Ifo):

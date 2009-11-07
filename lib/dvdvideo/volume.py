@@ -1,4 +1,7 @@
+import itertools
+
 from .ifo import VmgIfo, VtsIfo
+from .vob import MenuVob, TitleVob
 
 
 class Vmg(object):
@@ -17,7 +20,15 @@ class VmgUdf(Vmg):
         self.ifo = VmgIfo(self.file_ifo)
         self.bup = VmgIfo(self.file_bup)
 
-        self.file_vob = media.file('VIDEO_TS.VOB')
+        self.file_menu_vob = media.file('VIDEO_TS.VOB')
+        self.menu_vob = MenuVob(self.file_menu_vob)
+
+    def dump(self):
+        return itertools.chain(
+                self.ifo.dump(),
+                self.bup.dump(),
+                self.menu_vob.dump(),
+                )
 
 
 class VtsUdf(Vmg):
@@ -32,14 +43,26 @@ class VtsUdf(Vmg):
 
         try:
             self.file_menu_vob = media.file('%s_0.VOB' % prefix)
+            self.menu_vob = MenuVob(self.file_menu_vob)
         except KeyError:
             self.file_menu_vob = None
+            self.menu_vob = None
 
-        self.file_title_vobs = []
+        self.file_title_vob = []
 
         for i in range(1, 10):
             try:
                 vob = media.file('%s_%d.VOB' % (prefix, i))
-                self.file_title_vobs.append(vob)
+                self.file_title_vob.append(vob)
             except KeyError:
                 break
+
+        self.title_vob = TitleVob(self.file_title_vob)
+
+    def dump(self):
+        return itertools.chain(
+                self.ifo.dump(),
+                self.bup.dump(),
+                self.menu_vob.dump(),
+                self.title_vob.dump(),
+                )
