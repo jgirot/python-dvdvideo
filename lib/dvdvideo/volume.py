@@ -1,19 +1,15 @@
-from .ifo import VmgIfo
+from .ifo import VmgIfo, VtsIfo
 
 
 class Vmg(object):
     pass
 
 
+class Vts(object):
+    pass
+
+
 class VmgUdf(Vmg):
-    class File(object):
-        def __init__(self, udf, dir, name):
-            self._udf = udf
-            self._location = dir[name].entry.ad[0].location_absolute
-
-        def read(self, sector, count=1):
-            return self._udf.read_sector(self._location + sector, count * 2048)
-
     def __init__(self, media):
         self.file_ifo = media.file('VIDEO_TS.IFO')
         self.file_vob = media.file('VIDEO_TS.VOB')
@@ -21,3 +17,15 @@ class VmgUdf(Vmg):
 
         self.ifo = VmgIfo(self.file_ifo)
         self.bup = VmgIfo(self.file_bup)
+
+
+class VtsUdf(Vmg):
+    def __init__(self, media, titleset):
+        prefix = 'VTS_%02d' % titleset
+
+        self.file_ifo = media.file('%s_0.IFO' % prefix)
+        self.file_vob = media.file('%s_0.VOB' % prefix)
+        self.file_bup = media.file('%s_0.BUP' % prefix)
+
+        self.ifo = VtsIfo(self.file_ifo)
+        self.bup = VtsIfo(self.file_bup)

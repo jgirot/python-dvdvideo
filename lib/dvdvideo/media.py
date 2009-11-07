@@ -1,4 +1,4 @@
-from .volume import VmgUdf
+from .volume import VmgUdf, VtsUdf
 
 class Media(object):
     pass
@@ -25,3 +25,6 @@ class MediaUdf(Media):
 
     def vmg(self):
         return VmgUdf(self)
+
+    def vts(self, titleset):
+        return VtsUdf(self, titleset)
