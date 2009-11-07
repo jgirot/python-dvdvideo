@@ -2,7 +2,7 @@ import struct
 
 
 class VmgIfoHeader(object):
-    _struct = struct.Struct('>12s I 12x IHI 58x Q 24x II 56x IIIIIIII 32x 1792x')
+    _struct = struct.Struct('>12s I 12x IHI 24x H 32x Q 24x II 56x IIIIIIII 32x 1792x')
 
     def __init__(self, buf):
         data = self._struct.unpack(buf)
@@ -12,6 +12,7 @@ class VmgIfoHeader(object):
                 self.part_ifo_end,
                 version,
                 category,
+                self.number_titlesets,
                 pos,
                 vmgi_mat_end,
                 fp_pgc_start,
