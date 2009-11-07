@@ -9,13 +9,18 @@ class FileUdf(object):
         self._udf = udf
         self.name = name
 
-        self.location = dir[name].entry.ad[0].location_absolute
+        entry = dir[name].entry
+
+        if len(entry.ad) > 1:
+            raise NotImplementedError
+
+        self.ad = entry.ad[0]
 
     def __repr__(self):
-        return '<FileUdf %r; location %d>' % (self.name, self.location)
+        return '<FileUdf %r; ad %r>' % (self.name, self.ad)
 
     def read(self, sector, count=1):
-        return self._udf.read_sector(self.location + sector, count * 2048)
+        return self._udf.read_sector(self.ad.location_absolute + sector, count * 2048)
 
 
 class MediaUdf(Media):

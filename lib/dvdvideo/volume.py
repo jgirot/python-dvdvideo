@@ -19,6 +19,7 @@ class VmgUdf(Vmg):
 
         self.file_vob = media.file('VIDEO_TS.VOB')
 
+
 class VtsUdf(Vmg):
     def __init__(self, media, titleset):
         prefix = 'VTS_%02d' % titleset
