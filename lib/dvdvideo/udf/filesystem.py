@@ -25,7 +25,7 @@ class ICBTag(object):
         self.filetype, self.flags = data
 
     def __repr__(self):
-        return '<ICBTag with filetype %d, flags %x' % (
+        return '<ICBTag with filetype: %d; flags: %x>' % (
                 self.filetype,
                 self.flags,
                 )
@@ -90,7 +90,7 @@ class FileEntry(object):
             else:
                 raise NotImplementedError
 
-        self.ad = ad
+        self.ad = tuple(ad)
 
     def __getattr__(self, key):
         if key in self._lazy:
@@ -98,7 +98,7 @@ class FileEntry(object):
         return super().__getattribute__(key)
 
     def __repr__(self):
-        return '<FileEntry with icb tag %r, ad %r' % (
+        return '<FileEntry with icbtag: %r; ad: %r>' % (
                 self.icb,
                 self.ad,
                 )

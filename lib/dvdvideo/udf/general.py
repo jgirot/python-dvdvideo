@@ -10,7 +10,7 @@ class DescriptorTag(object):
                 crc, self.crc_length, self.location) = data
 
     def __repr__(self):
-        return '<DescriptorTag with identifier %d, version %d, location %d' % (
+        return '<DescriptorTag with identifier: %d; version: %d; location: %d>' % (
                 self.identifier,
                 self.version,
                 self.location,
@@ -42,7 +42,7 @@ class ExtentAD(object):
         self.flags = length >> 30
 
     def __repr__(self):
-        return '<ExtentAD with location %d, length %d, flags %d, partition %d' % (
+        return '<ExtentAD with location: %d; length: %d; flags: %d; partition: %d>' % (
                 self.location,
                 self.length,
                 self.flags,
@@ -61,7 +61,7 @@ class LongAD(object):
         self.flags = length >> 30
 
     def __repr__(self):
-        return '<LongAD with location %d, length %d, flags %d, partition %d' % (
+        return '<LongAD with location: %d; length: %d; flags: %d; partition: %d>' % (
                 self.location,
                 self.length,
                 self.flags,
@@ -80,7 +80,7 @@ class ShortAD(object):
         self.flags = length >> 30
 
     def __repr__(self):
-        return '<ShortAD with location %d, length %d, flags %d' % (
+        return '<ShortAD with location: %d; length: %d; flags: %x' % (
                 self.location,
                 self.length,
                 self.flags,
