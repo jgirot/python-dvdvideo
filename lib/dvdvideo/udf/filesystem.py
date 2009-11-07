@@ -18,11 +18,17 @@ class ShortADPartition(ShortAD):
 
 
 class ICBTag(object):
-    _struct = struct.Struct('<8xHxB6xH')
+    _struct = struct.Struct('<8x3xB6xH')
 
     def __init__(self, buf):
         data = self._struct.unpack(buf)
-        self.number, self.filetype, self.flags = data
+        self.filetype, self.flags = data
+
+    def __repr__(self):
+        return '<ICBTag with filetype %d, flags %x' % (
+                self.filetype,
+                self.flags,
+                )
 
 
 class FileSet(object):
@@ -90,6 +96,12 @@ class FileEntry(object):
         if key in self._lazy:
             self._populate()
         return super().__getattribute__(key)
+
+    def __repr__(self):
+        return '<FileEntry with icb tag %r, ad %r' % (
+                self.icb,
+                self.ad,
+                )
 
     def _populate(self):
         tree = None

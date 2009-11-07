@@ -9,7 +9,7 @@ class DescriptorTag(object):
         (self.identifier, self.version, self.checksum, serial_number,
                 crc, self.crc_length, self.location) = data
 
-    def __repor__(self):
+    def __repr__(self):
         return '<DescriptorTag with identifier %d, version %d, location %d' % (
                 self.identifier,
                 self.version,
