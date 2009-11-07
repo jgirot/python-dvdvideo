@@ -56,17 +56,19 @@ class VtsIfoHeader(object):
             raise RuntimeError
 
 
-class VmgIfo(object):
+class _Ifo(object):
+    def dump(self):
+        return self._file.dump(self.header.part_ifo_end + 1)
+
+    
+class VmgIfo(_Ifo):
     def __init__(self, file):
         self._file = file
 
         self.header = VmgIfoHeader(self._file.read(0))
 
-    def dump(self):
-        return self._file.dump(self.header.part_ifo_end + 1)
 
-
-class VtsIfo(object):
+class VtsIfo(_Ifo):
     def __init__(self, file):
         self._file = file
 
