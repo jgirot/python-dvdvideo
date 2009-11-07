@@ -1,5 +1,7 @@
 import os
 
+from .volume import Volume
+
 class Media(object):
     def __init__(self, filename):
         self._media = open(filename, 'rb')
@@ -9,3 +11,7 @@ class Media(object):
         # TODO
         self._media.seek(sector * 2048)
         return self._media.read(count_align)
+
+    @property
+    def volume(self):
+        return Volume(self)
