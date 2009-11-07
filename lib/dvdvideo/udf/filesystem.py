@@ -160,6 +160,11 @@ class FileIdentifier(object):
             self._populate()
         return super().__getattribute__(key)
 
+    def __repr__(self):
+        return '<FileIdentifier with name: %r>' % (
+                self.name,
+                )
+
     def _populate(self):
         location = self.icb.location_absolute
         length = self.icb.length
