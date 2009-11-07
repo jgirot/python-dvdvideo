@@ -79,7 +79,7 @@ class ShortAD(object):
         self.length = length & 0x3fffffff
         self.flags = length >> 30
 
-    def __repor__(self):
+    def __repr__(self):
         return '<ShortAD with location %d, length %d, flags %d' % (
                 self.location,
                 self.length,
