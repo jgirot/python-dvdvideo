@@ -19,6 +19,14 @@ class FileUdf(object):
     def __repr__(self):
         return '<FileUdf %r; ad %r>' % (self.name, self.ad)
 
+    def dump(self, length=0):
+        real_length = max(length, self.ad.length // 2048)
+        cur = 0
+        while cur < real_length:
+            toread = min(1000, real_length - cur)
+            yield self.read(cur, toread)
+            cur += toread
+
     def read(self, sector, count=1):
         return self._udf.read_sector(self.ad.location_absolute + sector, count * 2048)
 

@@ -62,6 +62,9 @@ class VmgIfo(object):
 
         self.header = VmgIfoHeader(self._file.read(0))
 
+    def dump(self):
+        return self._file.dump(self.header.part_ifo_end + 1)
+
 
 class VtsIfo(object):
     def __init__(self, file):
