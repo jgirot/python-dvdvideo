@@ -1,6 +1,6 @@
 import struct
 
-class VMGHeader(object):
+class VmgIfoHeader(object):
     _struct = struct.Struct('>12s I 12x IHI 58x Q 24x II 56x IIIIIIII 32x 1792x')
 
     def __init__(self, buf):
@@ -26,10 +26,9 @@ class VMGHeader(object):
         if id != b'DVDVIDEO-VMG':
             raise RuntimeError
 
-    @property
-    def part_menu_vob_end(self):
-        return self.part_bup_start - 1
 
-    @property
-    def part_bup_start(self):
-        return self.part_bup_end - self.part_ifo_end
+class VmgIfo(object):
+    def __init__(self, file):
+        self._file = file
+
+        self.header = VmgIfoHeader(self._file.read(0))
