@@ -9,6 +9,13 @@ class DescriptorTag(object):
         (self.identifier, self.version, self.checksum, serial_number,
                 crc, self.crc_length, self.location) = data
 
+    def __repor__(self):
+        return '<DescriptorTag with identifier %d, version %d, location %d' % (
+                self.identifier,
+                self.version,
+                self.location,
+                )
+
 
 class OSTACompressedUnicode(str):
     def __new__(self, buf):
@@ -34,6 +41,14 @@ class ExtentAD(object):
         self.length = length & 0x3fffffff
         self.flags = length >> 30
 
+    def __repr__(self):
+        return '<ExtentAD with location %d, length %d, flags %d, partition %d' % (
+                self.location,
+                self.length,
+                self.flags,
+                self.partition,
+                )
+
 
 class LongAD(object):
     _struct = struct.Struct('<IIH6x')
@@ -45,6 +60,14 @@ class LongAD(object):
         self.length = length & 0x3fffffff
         self.flags = length >> 30
 
+    def __repr__(self):
+        return '<LongAD with location %d, length %d, flags %d, partition %d' % (
+                self.location,
+                self.length,
+                self.flags,
+                self.partition,
+                )
+
 
 class ShortAD(object):
     _struct = struct.Struct('<II')
@@ -55,3 +78,10 @@ class ShortAD(object):
         length, self.location = data
         self.length = length & 0x3fffffff
         self.flags = length >> 30
+
+    def __repor__(self):
+        return '<ShortAD with location %d, length %d, flags %d' % (
+                self.location,
+                self.length,
+                self.flags,
+                )
