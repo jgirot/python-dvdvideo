@@ -158,5 +158,4 @@ class FileSetUdf(object):
         self.title_vob = files
 
     def __iter__(self):
-        for i in self.list:
-            yield i.name, i
+        return iter(self.list)
