@@ -78,7 +78,8 @@ class FileSetUdf(object):
                 cur += toread
 
         def __repr__(self):
-            return '<File with name: %r; location: %d; length: %d>' % (
+            return '<%s with name: %r; location: %d; length: %d>' % (
+                    self.__class__.__name__,
                     self.name,
                     self._location,
                     self.length,
@@ -92,14 +93,25 @@ class FileSetUdf(object):
                 raise RuntimeError
             return self._media.read(count)
 
+        def _seek(self, offset, **kw):
+            if offset > self.length:
+                raise RuntimeError
+            self._media.seek(self._location + offset, **kw)
+
+
+    class FileIfo(File):
         def read_sector(self, offset, count=1):
             self.seek(offset)
             return self.read(count)
 
         def seek(self, offset):
-            if offset > self.length:
-                raise RuntimeError
-            return self._media.seek(self._location + offset)
+            self._seek(offset)
+
+
+    class FileVob(File):
+        def seek(self, offset):
+            self._seek(offset, in_vob=True)
+
 
     def __init__(self, media, ifo, bup, menu_vob, title_vob=[]):
         input = [ifo, bup]
@@ -109,23 +121,31 @@ class FileSetUdf(object):
 
         input[-1:-1] = title_vob
 
-        files = []
+        i = input[0]
+        j = input[1]
+        ad_i = i.entry.ad[0]
+        ad_j = j.entry.ad[0]
 
-        for i, j in itertools.zip_longest(input[:-1], input[1:]):
+        location = ad_i.location_absolute
+        length = ad_j.location_absolute - location
+
+        files = [self.FileIfo(media, i.name, location, length)]
+
+        for i, j in itertools.zip_longest(input[1:-1], input[2:]):
             ad_i = i.entry.ad[0]
             ad_j = j.entry.ad[0]
 
             location = ad_i.location_absolute
             length = ad_j.location_absolute - location
 
-            files.append(self.File(media, i.name, location, length))
+            files.append(self.FileVob(media, i.name, location, length))
 
         i = input[-1]
         ad_i = i.entry.ad[0]
         location = ad_i.location_absolute
         length = files[0].length
 
-        files.append(self.File(media, i.name, location, length))
+        files.append(self.FileIfo(media, i.name, location, length))
 
         self.list = files[:]
 
