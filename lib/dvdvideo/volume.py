@@ -73,9 +73,9 @@ class FileSetUdf(object):
             cur = 0
             self.seek(0)
             while cur < self.length:
-                toread = min(512, self.length - cur)
-                yield self.read(toread)
-                cur += toread
+                r = self.read(min(512, self.length - cur))
+                cur += len(r) // 2048
+                yield r
 
         def __repr__(self):
             return '<%s with name: %r; location: %d; length: %d>' % (
