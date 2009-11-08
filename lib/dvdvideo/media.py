@@ -1,3 +1,6 @@
+import os
+import stat
+
 from .volume import VmgUdf, VtsUdf
 
 
@@ -25,8 +28,16 @@ class MediaUdf(Media):
 
     def __init__(self, filename):
         from .udf.media import Media
+        from .libdvdcss import DvdCssFile
 
-        f = self.File(filename)
+        s = os.stat(filename)
+        if stat.S_ISREG(s.st_mode):
+            f = self.File(filename)
+        elif stat.S_ISBLK(s.st_mode):
+            f = DvdCssFile(filename)
+        else:
+            raise RuntimeError
+
         self.read = f.read_sector
         self.seek = f.seek_sector
         self.tell = f.tell_sector
