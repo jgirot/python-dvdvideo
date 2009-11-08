@@ -14,55 +14,116 @@ class Vts(object):
 
 class VmgUdf(Vmg):
     def __init__(self, media):
-        self.file_ifo = media.file('VIDEO_TS.IFO')
-        self.file_bup = media.file('VIDEO_TS.BUP')
+        file_ifo = media.file('VIDEO_TS.IFO')
+        file_bup = media.file('VIDEO_TS.BUP')
+        file_vob = media.file('VIDEO_TS.VOB')
 
-        self.ifo = VmgIfo(self.file_ifo)
-        self.bup = VmgIfo(self.file_bup)
+        self.fileset = FileSetUdf(media, file_ifo, file_bup, file_vob)
 
-        self.file_menu_vob = media.file('VIDEO_TS.VOB')
-        self.menu_vob = MenuVob(self.file_menu_vob)
+        self.ifo = VmgIfo(self.fileset.ifo)
+        self.bup = VmgIfo(self.fileset.bup)
+        self.menu_vob = MenuVob(self.fileset.menu_vob)
 
     def dump(self):
-        return itertools.chain(
-                self.ifo.dump(),
-                self.bup.dump(),
-                self.menu_vob.dump(),
-                )
+        return iter(self.fileset)
 
 
 class VtsUdf(Vmg):
     def __init__(self, media, titleset):
         prefix = 'VTS_%02d' % titleset
 
-        self.file_ifo = media.file('%s_0.IFO' % prefix)
-        self.file_bup = media.file('%s_0.BUP' % prefix)
-
-        self.ifo = VtsIfo(self.file_ifo)
-        self.bup = VtsIfo(self.file_bup)
+        file_ifo = media.file('%s_0.IFO' % prefix)
+        file_bup = media.file('%s_0.BUP' % prefix)
 
         try:
-            self.file_menu_vob = media.file('%s_0.VOB' % prefix)
-            self.menu_vob = MenuVob(self.file_menu_vob)
+            file_menu_vob = media.file('%s_0.VOB' % prefix)
         except KeyError:
-            self.file_menu_vob = None
-            self.menu_vob = None
+            file_menu_vob = None
 
-        self.file_title_vob = []
-
+        file_title_vob = []
         for i in range(1, 10):
             try:
                 vob = media.file('%s_%d.VOB' % (prefix, i))
-                self.file_title_vob.append(vob)
+                file_title_vob.append(vob)
             except KeyError:
                 break
 
-        self.title_vob = TitleVob(self.file_title_vob)
+        self.fileset = FileSetUdf(media, file_ifo, file_bup, file_menu_vob, file_title_vob)
+
+        self.ifo = VtsIfo(self.fileset.ifo)
+        self.bup = VtsIfo(self.fileset.bup)
+
+        if file_menu_vob:
+            self.menu_vob = MenuVob(self.fileset.menu_vob)
+        else:
+            self.menu_vob = None
+
+        self.title_vob = TitleVob(self.fileset.title_vob)
 
     def dump(self):
-        return itertools.chain(
-                self.ifo.dump(),
-                self.bup.dump(),
-                self.menu_vob.dump(),
-                self.title_vob.dump(),
-                )
+        return iter(self.fileset)
+
+
+class FileSetUdf(object):
+    class File(object):
+        def __init__(self, media, name, location, length):
+            self._media, self.name, self._location, self.length = media, name, location, length
+
+        def __iter__(self):
+            cur = 0
+            while cur < self.length:
+                toread = min(1000, self.length - cur)
+                yield self.read(cur, toread)
+                cur += toread
+
+        def __repr__(self):
+            return '<File with name: %r; location: %d; length: %d>' % (
+                    self.name,
+                    self._location,
+                    self.length,
+                    )
+
+        def read(self, sector, count=1):
+            if sector + count > self.length:
+                raise RuntimeError
+            return self._media.udf.read_sector(self._location + sector, count * 2048)
+
+    def __init__(self, media, ifo, bup, menu_vob, title_vob=[]):
+        input = [ifo, bup]
+
+        if menu_vob:
+            input.insert(1, menu_vob)
+
+        input[-1:-1] = title_vob
+
+        files = []
+
+        for i, j in itertools.zip_longest(input[:-1], input[1:]):
+            ad_i = i.entry.ad[0]
+            ad_j = j.entry.ad[0]
+
+            location = ad_i.location_absolute
+            length = ad_j.location_absolute - location
+
+            files.append(self.File(media, i.name, location, length))
+
+        i = input[-1]
+        ad_i = i.entry.ad[0]
+        location = ad_i.location_absolute
+        length = files[0].length
+
+        files.append(self.File(media, i.name, location, length))
+
+        self.list = files[:]
+
+        self.ifo = files.pop(0)
+        self.bup = files.pop(-1)
+        if menu_vob:
+            self.menu_vob = files.pop(0)
+        else:
+            self.menu_vob = None
+        self.title_vob = files
+
+    def __iter__(self):
+        for i in self.list:
+            yield i.name, i
