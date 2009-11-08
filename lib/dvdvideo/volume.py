@@ -85,7 +85,7 @@ class FileSetUdf(object):
                     self.length,
                     )
 
-        def read(self, count=1):
+        def _read(self, count):
             sector = self._media.tell()
             if sector < self._location:
                 raise RuntimeError
@@ -100,6 +100,9 @@ class FileSetUdf(object):
 
 
     class FileIfo(File):
+        def read(self, count=1):
+            return self._read(count)
+
         def read_sector(self, offset, count=1):
             self.seek(offset)
             return self.read(count)
@@ -109,6 +112,13 @@ class FileSetUdf(object):
 
 
     class FileVob(File):
+        def read(self, count=1):
+            try:
+                return self._read(count)
+            except IOError:
+                self._media.seek(self._media.tell() + count)
+                return bytes(count * 2048)
+
         def seek(self, offset):
             self._seek(offset, in_vob=True)
 
