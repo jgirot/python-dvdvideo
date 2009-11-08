@@ -17,7 +17,7 @@ class MediaUdf(Media):
         def read_sector(self, count):
             return self.read(count * 2048)
 
-        def seek_sector(self, offset):
+        def seek_sector(self, offset, **kw):
             self.seek(offset * 2048)
 
         def tell_sector(self):
