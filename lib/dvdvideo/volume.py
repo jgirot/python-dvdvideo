@@ -71,9 +71,10 @@ class FileSetUdf(object):
 
         def __iter__(self):
             cur = 0
+            self.seek(0)
             while cur < self.length:
-                toread = min(1000, self.length - cur)
-                yield self.read(cur, toread)
+                toread = min(512, self.length - cur)
+                yield self.read(toread)
                 cur += toread
 
         def __repr__(self):
@@ -83,10 +84,22 @@ class FileSetUdf(object):
                     self.length,
                     )
 
-        def read(self, sector, count=1):
-            if sector + count > self.length:
+        def read(self, count=1):
+            sector = self._media.tell()
+            if sector < self._location:
                 raise RuntimeError
-            return self._media.udf.read_sector(self._location + sector, count * 2048)
+            if sector - self._location + count > self.length:
+                raise RuntimeError
+            return self._media.read(count)
+
+        def read_sector(self, offset, count=1):
+            self.seek(offset)
+            return self.read(count)
+
+        def seek(self, offset):
+            if offset > self.length:
+                raise RuntimeError
+            return self._media.seek(self._location + offset)
 
     def __init__(self, media, ifo, bup, menu_vob, title_vob=[]):
         input = [ifo, bup]

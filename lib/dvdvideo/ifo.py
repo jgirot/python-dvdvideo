@@ -65,11 +65,11 @@ class VmgIfo(_Ifo):
     def __init__(self, file):
         self._file = file
 
-        self.header = VmgIfoHeader(self._file.read(0))
+        self.header = VmgIfoHeader(self._file.read_sector(0))
 
 
 class VtsIfo(_Ifo):
     def __init__(self, file):
         self._file = file
 
-        self.header = VtsIfoHeader(self._file.read(0))
+        self.header = VtsIfoHeader(self._file.read_sector(0))

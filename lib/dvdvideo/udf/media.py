@@ -1,10 +1,8 @@
-import os
-
 from .volume import Volume
 
 class Media(object):
-    def __init__(self, filename):
-        self._file = open(filename, 'rb')
+    def __init__(self, file):
+        self._file = file
         self._sector_size = 2048
 
     def read(self, count):

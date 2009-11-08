@@ -9,7 +9,8 @@ class MediaUdf(Media):
     def __init__(self, filename):
         from .udf.media import Media
 
-        self.udf = Media(filename)
+        self._file = open(filename, 'rb')
+        self.udf = Media(self._file)
         self.video_dir = self.udf.volume.partitions[0].fileset.root.tree['VIDEO_TS'].entry.tree
 
     def file(self, name):
@@ -19,6 +20,15 @@ class MediaUdf(Media):
             raise NotImplementedError
 
         return f
+
+    def read(self, count):
+        return self._file.read(count * 2048)
+
+    def seek(self, offset):
+        self._file.seek(offset * 2048)
+
+    def tell(self):
+        return self._file.tell() // 2048
 
     def vmg(self):
         return VmgUdf(self)
