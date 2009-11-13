@@ -67,11 +67,11 @@ class VtsUdf(Vmg):
 class FileSetUdf(object):
     class File(object):
         def __init__(self, media, name, location, length):
-            self._media, self.name, self._location, self.length = media, name, location, length
+            self._media, self.name, self.location, self.length = media, name, location, length
 
         def __iter__(self):
             cur = 0
-            self.seek(0)
+            self.seek(cur)
             while cur < self.length:
                 r = self.read(min(512, self.length - cur))
                 cur += len(r) // 2048
@@ -81,22 +81,22 @@ class FileSetUdf(object):
             return '<%s with name: %r; location: %d; length: %d>' % (
                     self.__class__.__name__,
                     self.name,
-                    self._location,
+                    self.location,
                     self.length,
                     )
 
         def _read(self, count):
             sector = self._media.tell()
-            if sector < self._location:
+            if sector < self.location:
                 raise RuntimeError
-            if sector - self._location + count > self.length:
+            if sector + count > self.location + self.length:
                 raise RuntimeError
             return self._media.read(count)
 
         def _seek(self, offset, **kw):
             if offset > self.length:
                 raise RuntimeError
-            self._media.seek(self._location + offset, **kw)
+            self._media.seek(self.location + offset, **kw)
 
 
     class FileIfo(File):
