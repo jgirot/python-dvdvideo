@@ -1,0 +1,82 @@
+#!/usr/bin/python3.1
+import sys
+import logging
+
+from dvdvideo.media import MediaUdf
+
+def main(input, output):
+    media = MediaUdf(input)
+
+    vmg = media.vmg()
+    vts = [media.vts(i) for i in range(1, vmg.ifo.header.number_titlesets + 1)]
+
+    encrypted_files = [vmg.fileset.menu_vob]
+    image_length = vmg.fileset.ifo.location + vmg.ifo.header.part_bup_end
+
+    for i in vts:
+        encrypted_files.append(i.fileset.menu_vob)
+        encrypted_files.extend(i.fileset.title_vob)
+        bup_end = i.fileset.ifo.location + i.ifo.header.part_bup_end
+        image_length = max(image_length, max(bup_end, i.fileset.bup.location + i.fileset.bup.length))
+
+    logging.debug('image length: %d', image_length)
+
+    encrypted_parts = [(i.location, i.location + i.length) for i in encrypted_files if i]
+    encrypted_parts.sort()
+
+    logging.debug('encrypted parts: %r', encrypted_parts)
+
+    encrypted_parts_col = []
+    while encrypted_parts:
+        cur = list(encrypted_parts.pop(0))
+        while encrypted_parts:
+            next = encrypted_parts.pop(0)
+            if cur[1] < next[0]:
+                encrypted_parts.insert(0, next)
+                break
+            cur[1] = next[1]
+        encrypted_parts_col.append(tuple(cur))
+
+    logging.debug('collapsed encrypted parts: %r', encrypted_parts_col)
+
+    parts = []
+    part_end = 0
+    while encrypted_parts_col:
+        cur = encrypted_parts_col.pop(0)
+        parts.append((part_end, cur[0], False))
+        parts.append((cur[0], cur[1], True))
+        part_end = cur[1]
+    parts.append((part_end, image_length, False))
+
+    logging.debug('overall parts: %r', parts)
+
+    image = open(output, 'wb')
+
+    cur = 0
+    for start, end, encrypted in parts:
+        length = end - start
+        logging.debug('part: %d, %d, %r', start, end, encrypted)
+
+        if encrypted:
+            media.seek(start, start_encrypted=True)
+        else:
+           media.seek(start)
+
+        while cur < end:
+            count = min(512, end - cur)
+            try:
+                r = media.read(count, encrypted=encrypted)
+            except IOError:
+                logging.debug('Read error at %d', cur)
+                media.seek(cur + count)
+                r = bytes(count * 2048)
+            count_real = len(r) // 2048
+            if cur // 5120 < (cur + count_real) // 5120:
+                logging.debug('written: %d', (cur + count_real) // 512)
+            cur += count_real
+            image.write(r)
+        logging.debug('part end, written %d', cur)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    main(*sys.argv[1:3])
