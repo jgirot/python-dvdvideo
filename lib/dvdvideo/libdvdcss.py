@@ -29,7 +29,7 @@ class DvdCssFile(object):
         self._cur += ret
         if ret != count:
             # Short read, libdvdcss does a weird seek in this case, fix it
-            self.seek_sector(self._cur + ret)
+            self.seek_sector(self._cur)
             return buf[:ret * 2048]
         return buf
 
