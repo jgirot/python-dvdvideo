@@ -21,9 +21,9 @@ class DvdCssFile(object):
     def read(self, count):
         return self.read_sector(count // 2048)
 
-    def read_sector(self, count):
+    def read_sector(self, count, encrypted=False):
         buf = create_string_buffer(count * 2048)
-        ret = _dvdcss_read(self._handle, buf, count, 1)
+        ret = _dvdcss_read(self._handle, buf, count, encrypted and 1 or 0)
         if ret < 0:
             raise IOError
         self._cur += ret
@@ -36,8 +36,8 @@ class DvdCssFile(object):
     def seek(self, offset):
         self.seek_sector(offset // 2048)
 
-    def seek_sector(self, offset, in_vob=False):
-        ret = _dvdcss_seek(self._handle, offset, in_vob and 1 or 0)
+    def seek_sector(self, offset, start_encrypted=False):
+        ret = _dvdcss_seek(self._handle, offset, start_encrypted and 1 or 0)
         if ret < 0 or ret != offset:
             raise RuntimeError
         self._cur = ret
