@@ -120,7 +120,8 @@ class FileSetUdf(object):
                 return bytes(count * 2048)
 
         def seek(self, offset):
-            self._seek(offset, in_vob=True)
+            self._seek(0, start_encrypted=True)
+            self._seek(offset)
 
 
     def __init__(self, media, ifo, bup, menu_vob, title_vob=[]):
