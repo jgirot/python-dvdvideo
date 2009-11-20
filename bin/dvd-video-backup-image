@@ -4,77 +4,209 @@ import logging
 
 from dvdvideo.media import MediaUdf
 
+
+class Part(object):
+    def __lt__(self, other):
+        if isinstance(other, Part):
+            if self.begin < other.begin: return True
+            return self.end < other.end
+        return NotImplemented
+
+    def __repr__(self):
+        return '<%s object: begin: %d; end: %d>' % (self.__class__.__name__,
+                self.begin,
+                self.end,
+                )
+
+    def _dump_read(self, media, cur, count):
+        try:
+            return media.read(count)
+        except IOError:
+            logging.debug('Read error at %d', cur)
+            self._dump_seek(cur + count)
+            return bytes(count * 2048)
+
+    def _dump_seek(self, media, count=0):
+        media.seek(self.begin + count)
+
+    def dump(self, media):
+        self._dump_seek(media)
+
+        length = self.end - self.begin
+        cur = 0
+        while cur < length:
+            count = min(512, length - cur)
+            r = self._dump_read(media, cur, count)
+            cur += len(r) // 2048
+            yield r
+
+
+class PartFile(Part):
+    def __init__(self, file):
+        if isinstance(file, (list, tuple)):
+            self.begin = file[0].location
+            file = file[-1]
+        else:
+            self.begin = file.location
+        self.end = file.location + file.length
+
+
+class PartVmgCopy(object):
+    def dump(self, media):
+        self._dump_seek(media)
+
+        r = self._dump_read(media, 0, 1)
+        r[35] = 0
+        yield r
+
+        length = self.end - self.begin
+        cur = 1
+        while cur < length:
+            count = min(512, length - cur)
+            r = self._dump_read(media, cur, count)
+            cur += len(r) // 2048
+            yield r
+
+
+class PartIfo(PartFile):
+    def check(self, other):
+        if isinstance(other, PartIfo):
+            if self.begin >= other.begin and self.end <= other.end:
+                logging.debug('Overlap between %r and %r, removing', self, other)
+                return True
+        else:
+            if (self.begin <= other.begin and other.begin < self.end or
+                self.begin < other.end and other.end <= self.end):
+                raise RuntimeError('Overlap between %r and %r' % (self, other))
+
+
+class PartIfoVmg(PartIfo, PartVmgCopy):
+    pass
+
+
+class PartIfoVts(PartIfo):
+    pass
+
+
+class PartBup(PartFile):
+    def check(self, other):
+        if isinstance(other, PartIfo):
+            if (self.begin <= other.begin and other.begin < self.end or
+                self.begin < other.end and other.end <= self.end):
+                raise RuntimeError('Overlap between %r and %r' % (self, other))
+        elif isinstance(other, PartBup):
+            if self.begin >= other.begin and self.end <= other.end:
+                logging.debug('Overlap between %r and %r, removing', self, other)
+                return True
+        elif isinstance(other, PartVob):
+            if self.begin <= other.begin and other.begin < self.end:
+                raise RuntimeError('Overlap between %r and %r' % (self, other))
+
+
+class PartBupVmg(PartBup, PartVmgCopy):
+    pass
+
+
+class PartBupVts(PartBup):
+    pass
+
+
+class PartVob(PartFile):
+    def check(self, other):
+        if isinstance(other, PartIfo):
+            if (self.begin <= other.begin and other.begin < self.end or
+                self.begin < other.end and other.end <= self.end):
+                raise RuntimeError('Overlap between %r and %r' % (self, other))
+        elif isinstance(other, PartBup):
+            if self.begin <= other.begin and other.begin < self.end:
+                logging.debug('Overlap between %r and %r, adjusting', self, other)
+                self.end = other.begin
+        elif isinstance(other, PartVob):
+            if self.begin == other.begin:
+                if self.end <= other.end:
+                    logging.debug('Overlap between %r and %r, removing', self, other)
+                    return True
+            elif (self.begin <= other.begin and other.begin < self.end or
+                  self.begin < other.end and other.end <= self.end):
+                raise RuntimeError('Overlap between %r and %r' % (self, other))
+
+    def _dump_read(self, media, cur, count):
+        try:
+            return media.read(count, encrypted=True)
+        except IOError:
+            logging.debug('Read error at %d', cur)
+            self._dump_seek(cur + count)
+            return bytes(count * 2048)
+
+    def _dump_seek(self, media):
+        media.seek(self.begin, start_encrypted=True)
+
+
+class PartMeta(Part):
+    def __init__(self, begin, end):
+        self.begin, self.end = begin, end
+
+
 def main(input, output):
     media = MediaUdf(input)
+    part = media.udf.volume.partitions[0]
 
     vmg = media.vmg()
     vts = [media.vts(i) for i in range(1, vmg.ifo.header.number_titlesets + 1)]
 
-    encrypted_files = [vmg.fileset.menu_vob]
-    image_length = vmg.fileset.ifo.location + vmg.ifo.header.part_bup_end
-
-    for i in vts:
-        encrypted_files.append(i.fileset.menu_vob)
-        encrypted_files.extend(i.fileset.title_vob)
-        bup_end = i.fileset.ifo.location + i.ifo.header.part_bup_end
-        image_length = max(image_length, max(bup_end, i.fileset.bup.location + i.fileset.bup.length))
+    image_length = part.location + part.length
 
     logging.debug('image length: %d', image_length)
 
-    encrypted_parts = [(i.location, i.location + i.length) for i in encrypted_files if i]
-    encrypted_parts.sort()
+    parts = [PartIfoVmg(vmg.fileset.ifo),
+            PartVob(vmg.fileset.menu_vob),
+            PartBupVmg(vmg.fileset.bup)]
 
-    logging.debug('encrypted parts: %r', encrypted_parts)
+    for i in vts:
+        parts.append(PartIfoVts(i.fileset.ifo))
+        if i.fileset.menu_vob:
+            parts.append(PartVob(i.fileset.menu_vob))
+        parts.append(PartVob(i.fileset.title_vob))
+        parts.append(PartBupVts(i.fileset.bup))
 
-    encrypted_parts_col = []
-    while encrypted_parts:
-        cur = list(encrypted_parts.pop(0))
-        while encrypted_parts:
-            next = encrypted_parts.pop(0)
-            if cur[1] < next[0]:
-                encrypted_parts.insert(0, next)
-                break
-            cur[1] = next[1]
-        encrypted_parts_col.append(tuple(cur))
+    logging.debug('parts: %r', parts)
 
-    logging.debug('collapsed encrypted parts: %r', encrypted_parts_col)
+    parts_removed = []
+    for i in parts:
+        for j in parts:
+            if i is not j and j not in parts_removed:
+                if i.check(j):
+                    parts_removed.append(i)
 
-    parts = []
+    parts = [i for i in parts if i not in parts_removed]
+    parts.sort()
+
+    logging.debug('parts: %r', parts)
+
+    parts_complete = []
     part_end = 0
-    while encrypted_parts_col:
-        cur = encrypted_parts_col.pop(0)
-        parts.append((part_end, cur[0], False))
-        parts.append((cur[0], cur[1], True))
-        part_end = cur[1]
-    parts.append((part_end, image_length, False))
+    while parts:
+        cur = parts.pop(0)
+        parts_complete.append(PartMeta(part_end, cur.begin))
+        parts_complete.append(cur)
+        part_end = cur.end
+    parts_complete.append(PartMeta(part_end, image_length))
 
-    logging.debug('overall parts: %r', parts)
+    logging.debug('overall parts: %r', parts_complete)
 
     image = open(output, 'wb')
 
     cur = 0
-    for start, end, encrypted in parts:
-        length = end - start
-        logging.debug('part: %d, %d, %r', start, end, encrypted)
+    for part in parts_complete:
+        logging.debug('part: %r', part)
 
-        if encrypted:
-            media.seek(start, start_encrypted=True)
-        else:
-           media.seek(start)
-
-        while cur < end:
-            count = min(512, end - cur)
-            try:
-                r = media.read(count, encrypted=encrypted)
-            except IOError:
-                logging.debug('Read error at %d', cur)
-                media.seek(cur + count)
-                r = bytes(count * 2048)
+        for r in part.dump(media):
             count_real = len(r) // 2048
             if cur // 5120 < (cur + count_real) // 5120:
                 logging.debug('written: %d', (cur + count_real) // 512)
             cur += count_real
             image.write(r)
+
         logging.debug('part end, written %d', cur)
 
 if __name__ == '__main__':
