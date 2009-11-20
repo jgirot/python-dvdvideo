@@ -1,6 +1,6 @@
 import itertools
 
-from .ifo import VmgIfo, VtsIfo
+from .ifo import MalformedIfoHeaderError, VmgIfo, VtsIfo
 from .vob import MenuVob, TitleVob
 
 
@@ -60,8 +60,11 @@ class VtsUdf(Vmg):
 
         self.fileset = FileSetUdf(media, file_ifo, file_bup, file_menu_vob, file_title_vob)
 
-        self.ifo = VtsIfo(self.fileset.ifo)
-        self.bup = VtsIfo(self.fileset.bup)
+        try:
+            self.ifo = VtsIfo(self.fileset.ifo)
+            self.bup = VtsIfo(self.fileset.bup)
+        except MalformedIfoHeaderError:
+            raise MalformedVolumePartError
 
         if file_menu_vob:
             self.menu_vob = MenuVob(self.fileset.menu_vob)

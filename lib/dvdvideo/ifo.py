@@ -1,6 +1,10 @@
 import struct
 
 
+class MalformedIfoHeaderError(Exception):
+    pass
+
+
 class VmgIfoHeader(object):
     _struct = struct.Struct('>12s I 12x IHI 24x H 32x Q 24x II 56x IIIIIIII 32x 1792x')
 
@@ -26,7 +30,7 @@ class VmgIfoHeader(object):
                 vmgm7_start) = data
 
         if id != b'DVDVIDEO-VMG':
-            raise RuntimeError
+            raise MalformedIfoHeaderError
 
 
 class VtsIfoHeader(object):
@@ -53,7 +57,7 @@ class VtsIfoHeader(object):
                 ) = data
 
         if id != b'DVDVIDEO-VTS':
-            raise RuntimeError
+            raise MalformedIfoHeaderError
 
 
 class _Ifo(object):
