@@ -25,6 +25,9 @@ class Part(object):
         while cur < length:
             count = min(512, length - cur)
             r = self._dump_read(media, cur, count)
+            if not len(r):
+                logging.debug('got eof')
+                return
             cur += len(r) // 2048
             yield r
 
@@ -65,6 +68,9 @@ class PartVmgCopy(object):
         while cur < length:
             count = min(512, length - cur)
             r = self._dump_read(media, cur, count)
+            if not len(r):
+                logging.debug('got eof')
+                return
             cur += len(r) // 2048
             yield r
 
