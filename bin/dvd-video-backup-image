@@ -35,7 +35,7 @@ class Part(object):
         try:
             return media.read(count)
         except IOError:
-            logging.debug('Read error at %d', cur)
+            logging.debug('Read error at %d', self.begin + cur)
             self._dump_seek(cur + count)
             return bytes(count * 2048)
 
@@ -141,7 +141,7 @@ class PartVob(PartFile):
         try:
             return media.read(count, encrypted=True)
         except IOError:
-            logging.debug('Read error at %d', cur)
+            logging.debug('Read error at %d', self.begin + cur)
             self._dump_seek(media, cur + count)
             return bytes(count * 2048)
 
