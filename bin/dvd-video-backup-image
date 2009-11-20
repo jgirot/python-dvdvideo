@@ -3,6 +3,7 @@ import sys
 import logging
 
 from dvdvideo.media import MediaUdf
+from dvdvideo.volume import MalformedVolumePartError
 
 
 class Part(object):
@@ -152,7 +153,11 @@ def main(input, output):
     part = media.udf.volume.partitions[0]
 
     vmg = media.vmg()
-    vts = [media.vts(i) for i in range(1, vmg.ifo.header.number_titlesets + 1)]
+    vts = []
+    for i in range(1, vmg.ifo.header.number_titlesets + 1):
+        try:
+            vts.append(media.vts(i))
+        except MalformedVolumePartError: pass
 
     image_length = part.location + part.length
 

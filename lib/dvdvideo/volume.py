@@ -4,6 +4,10 @@ from .ifo import VmgIfo, VtsIfo
 from .vob import MenuVob, TitleVob
 
 
+class MalformedVolumePartError(Exception):
+    pass
+
+
 class Vmg(object):
     pass
 
@@ -14,9 +18,12 @@ class Vts(object):
 
 class VmgUdf(Vmg):
     def __init__(self, media):
-        file_ifo = media.file('VIDEO_TS.IFO')
-        file_bup = media.file('VIDEO_TS.BUP')
-        file_vob = media.file('VIDEO_TS.VOB')
+        try:
+            file_ifo = media.file('VIDEO_TS.IFO')
+            file_bup = media.file('VIDEO_TS.BUP')
+            file_vob = media.file('VIDEO_TS.VOB')
+        except KeyError:
+            raise MalformedVolumePartError
 
         self.fileset = FileSetUdf(media, file_ifo, file_bup, file_vob)
 
@@ -32,8 +39,11 @@ class VtsUdf(Vmg):
     def __init__(self, media, titleset):
         prefix = 'VTS_%02d' % titleset
 
-        file_ifo = media.file('%s_0.IFO' % prefix)
-        file_bup = media.file('%s_0.BUP' % prefix)
+        try:
+            file_ifo = media.file('%s_0.IFO' % prefix)
+            file_bup = media.file('%s_0.BUP' % prefix)
+        except KeyError:
+            raise MalformedVolumePartError
 
         try:
             file_menu_vob = media.file('%s_0.VOB' % prefix)
