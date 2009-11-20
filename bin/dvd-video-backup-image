@@ -19,6 +19,15 @@ class Part(object):
                 self.end,
                 )
 
+    def _dump_iter(self, media):
+        length = self.end - self.begin
+        cur = 0
+        while cur < length:
+            count = min(512, length - cur)
+            r = self._dump_read(media, cur, count)
+            cur += len(r) // 2048
+            yield r
+
     def _dump_read(self, media, cur, count):
         try:
             return media.read(count)
@@ -27,19 +36,12 @@ class Part(object):
             self._dump_seek(cur + count)
             return bytes(count * 2048)
 
-    def _dump_seek(self, media, count=0):
-        media.seek(self.begin + count)
+    def _dump_seek(self, media, count, **kw):
+        media.seek(self.begin + count, **kw)
 
     def dump(self, media):
-        self._dump_seek(media)
-
-        length = self.end - self.begin
-        cur = 0
-        while cur < length:
-            count = min(512, length - cur)
-            r = self._dump_read(media, cur, count)
-            cur += len(r) // 2048
-            yield r
+        self._dump_seek(media, 0)
+        return self._dump_iter(media)
 
 
 class PartFile(Part):
@@ -53,9 +55,7 @@ class PartFile(Part):
 
 
 class PartVmgCopy(object):
-    def dump(self, media):
-        self._dump_seek(media)
-
+    def _dump_iter(self, media):
         r = self._dump_read(media, 0, 1)
         r[35] = 0
         yield r
@@ -136,11 +136,12 @@ class PartVob(PartFile):
             return media.read(count, encrypted=True)
         except IOError:
             logging.debug('Read error at %d', cur)
-            self._dump_seek(cur + count)
+            self._dump_seek(media, cur + count)
             return bytes(count * 2048)
 
-    def _dump_seek(self, media):
-        media.seek(self.begin, start_encrypted=True)
+    def dump(self, media):
+        self._dump_seek(media, 0, start_encrypted=True)
+        return self._dump_iter(media)
 
 
 class PartMeta(Part):
