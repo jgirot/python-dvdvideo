@@ -104,7 +104,10 @@ class PartBup(PartFile):
         elif isinstance(other, PartBup):
             if self.begin >= other.begin and self.end <= other.end:
                 logging.debug('Overlap between %r and %r, removing', self, other)
-                return True
+                return self
+            elif other.begin >= self.begin and other.end <= self.end:
+                logging.debug('Overlap between %r and %r, removing', self, other)
+                return other
         elif isinstance(other, PartVob):
             if self.begin <= other.begin and other.begin < self.end:
                 raise RuntimeError('Overlap between %r and %r' % (self, other))
@@ -120,19 +123,19 @@ class PartBupVts(PartBup):
 
 class PartVob(PartFile):
     def check(self, other):
-        if isinstance(other, PartIfo):
-            if (self.begin <= other.begin and other.begin < self.end or
-                self.begin < other.end and other.end <= self.end):
-                raise RuntimeError('Overlap between %r and %r' % (self, other))
-        elif isinstance(other, PartBup):
+        if isinstance(other, (PartIfo, PartBup)):
             if self.begin <= other.begin and other.begin < self.end:
                 logging.debug('Overlap between %r and %r, adjusting', self, other)
                 self.end = other.begin
         elif isinstance(other, PartVob):
-            if self.begin == other.begin:
+            if self.begin >= other.begin:
                 if self.end <= other.end:
                     logging.debug('Overlap between %r and %r, removing', self, other)
-                    return True
+                    return self
+            elif other.begin >= self.begin:
+                if other.end <= self.end:
+                    logging.debug('Overlap between %r and %r, removing', self, other)
+                    return other
             elif (self.begin <= other.begin and other.begin < self.end or
                   self.begin < other.end and other.end <= self.end):
                 raise RuntimeError('Overlap between %r and %r' % (self, other))
@@ -181,7 +184,8 @@ def main(input, output):
         if i.fileset.menu_vob:
             parts.append(PartVob(i.fileset.menu_vob))
         parts.append(PartVob(i.fileset.title_vob))
-        parts.append(PartBupVts(i.fileset.bup))
+        if i.bup:
+            parts.append(PartBupVts(i.fileset.bup))
 
     logging.debug('parts: %r', parts)
 
@@ -189,8 +193,9 @@ def main(input, output):
     for i in parts:
         for j in parts:
             if i is not j and j not in parts_removed:
-                if i.check(j):
-                    parts_removed.append(i)
+                to_remove = i.check(j)
+                if to_remove:
+                    parts_removed.append(to_remove)
 
     parts = [i for i in parts if i not in parts_removed]
     parts.sort()
@@ -201,7 +206,8 @@ def main(input, output):
     part_end = 0
     while parts:
         cur = parts.pop(0)
-        parts_complete.append(PartMeta(part_end, cur.begin))
+        if cur.begin > part_end:
+            parts_complete.append(PartMeta(part_end, cur.begin))
         parts_complete.append(cur)
         part_end = cur.end
     parts_complete.append(PartMeta(part_end, image_length))
