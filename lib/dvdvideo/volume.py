@@ -1,15 +1,10 @@
 import itertools
-import warnings
 
 from .ifo import MalformedIfoHeaderError, VmgIfo, VtsIfo
 from .vob import MenuVob, TitleVob
 
 
 class MalformedVolumePartError(Exception):
-    pass
-
-
-class MalformedVolumePartWarning(Warning):
     pass
 
 
@@ -71,8 +66,8 @@ class VtsUdf(Vmg):
             raise MalformedVolumePartError
         try:
             self.bup = VtsIfo(self.fileset.bup)
-        except MalformedIfoHeaderError as e:
-            warnings.warn(e, MalformedVolumePartWarning)
+        except MalformedIfoHeaderError:
+            self.bup = None
 
         if file_menu_vob:
             self.menu_vob = MenuVob(self.fileset.menu_vob)
