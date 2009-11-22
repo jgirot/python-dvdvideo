@@ -87,7 +87,7 @@ class PartIfo(PartFile):
                 raise RuntimeError('Overlap between %r and %r' % (self, other))
 
 
-class PartIfoVmg(PartIfo, PartVmgCopy):
+class PartIfoVmg(PartVmgCopy, PartIfo):
     pass
 
 
@@ -110,7 +110,7 @@ class PartBup(PartFile):
                 raise RuntimeError('Overlap between %r and %r' % (self, other))
 
 
-class PartBupVmg(PartBup, PartVmgCopy):
+class PartBupVmg(PartVmgCopy, PartBup):
     pass
 
 
@@ -164,7 +164,9 @@ def main(input, output):
     for i in range(1, vmg.ifo.header.number_titlesets + 1):
         try:
             vts.append(media.vts(i))
-        except MalformedVolumePartError: pass
+        except MalformedVolumePartError as e:
+            logging.debug('Ignore VTS %d because of errors (%s)', i, e)
+            pass
 
     image_length = part.location + part.length
 
