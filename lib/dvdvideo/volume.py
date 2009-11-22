@@ -1,10 +1,15 @@
 import itertools
+import warnings
 
 from .ifo import MalformedIfoHeaderError, VmgIfo, VtsIfo
 from .vob import MenuVob, TitleVob
 
 
 class MalformedVolumePartError(Exception):
+    pass
+
+
+class MalformedVolumePartWarning(Warning):
     pass
 
 
@@ -22,8 +27,8 @@ class VmgUdf(Vmg):
             file_ifo = media.file('VIDEO_TS.IFO')
             file_bup = media.file('VIDEO_TS.BUP')
             file_vob = media.file('VIDEO_TS.VOB')
-        except KeyError:
-            raise MalformedVolumePartError
+        except KeyError as e:
+            raise MalformedVolumePartError('Missing file %s' % e.args[0])
 
         self.fileset = FileSetUdf(media, file_ifo, file_bup, file_vob)
 
@@ -42,8 +47,8 @@ class VtsUdf(Vmg):
         try:
             file_ifo = media.file('%s_0.IFO' % prefix)
             file_bup = media.file('%s_0.BUP' % prefix)
-        except KeyError:
-            raise MalformedVolumePartError
+        except KeyError as e:
+            raise MalformedVolumePartError('Missing file %s' % e.args[0])
 
         try:
             file_menu_vob = media.file('%s_0.VOB' % prefix)
@@ -62,9 +67,12 @@ class VtsUdf(Vmg):
 
         try:
             self.ifo = VtsIfo(self.fileset.ifo)
-            self.bup = VtsIfo(self.fileset.bup)
         except MalformedIfoHeaderError:
             raise MalformedVolumePartError
+        try:
+            self.bup = VtsIfo(self.fileset.bup)
+        except MalformedIfoHeaderError as e:
+            warnings.warn(e, MalformedVolumePartWarning)
 
         if file_menu_vob:
             self.menu_vob = MenuVob(self.fileset.menu_vob)
