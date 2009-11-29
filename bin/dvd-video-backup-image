@@ -3,6 +3,7 @@ import sys
 import logging
 
 from dvdvideo.media import MediaUdf
+from dvdvideo.utils import ProgressStream
 from dvdvideo.volume import MalformedVolumePartError
 
 
@@ -173,7 +174,8 @@ def main(input, output):
 
     image_length = part.location + part.length
 
-    logging.debug('image length: %d', image_length)
+    progress = ProgressStream(sys.stdout, image_length)
+    logging.root.handlers[0].stream = progress
 
     parts = [PartIfoVmg(vmg.fileset.ifo),
             PartVob(vmg.fileset.menu_vob),
@@ -222,8 +224,7 @@ def main(input, output):
 
         for r in part.dump(media):
             count_real = len(r) // 2048
-            if cur // 5120 < (cur + count_real) // 5120:
-                logging.debug('written: %d', (cur + count_real) // 512)
+            progress.update(count_real)
             cur += count_real
             image.write(r)
 
