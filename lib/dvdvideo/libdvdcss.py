@@ -38,6 +38,9 @@ class DvdCssFile(object):
 
     def seek_sector(self, offset, start_encrypted=False):
         ret = _dvdcss_seek(self._handle, offset, start_encrypted and 1 or 0)
+        if start_encrypted and ret < 0:
+            # Retry without key
+            ret = _dvdcss_seek(self._handle, offset, 0)
         if ret < 0 or ret != offset:
             raise RuntimeError
         self._cur = ret
