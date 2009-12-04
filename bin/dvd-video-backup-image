@@ -60,7 +60,7 @@ class PartFile(Part):
 
 class PartVmgCopy(object):
     def _dump_iter(self, media):
-        r = self._dump_read(media, 0, 1)
+        r = bytearray(self._dump_read(media, 0, 1))
         r[35] = 0
         yield r
 
