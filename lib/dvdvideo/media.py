@@ -28,7 +28,10 @@ class MediaUdf(Media):
 
     def __init__(self, filename):
         from .udf.media import Media
-        from .libdvdcss import DvdCssFile
+        try:
+            from .libdvdcss import DvdCssFile
+        except ImportError:
+            DvdCssFile = self.File
 
         s = os.stat(filename)
         if stat.S_ISREG(s.st_mode):
