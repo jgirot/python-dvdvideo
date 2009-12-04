@@ -51,7 +51,7 @@ class Part(object):
 class PartFile(Part):
     def adjust_other(self, other, all):
         if isinstance(other, self.__class__):
-            if self.begin <= other.begin and self.end >= other.end:
+            if self.begin <= other.begin and other.end <= self.end:
                 logging.debug('Overlap between %r and %r, removing', self, other)
                 all.remove(other)
                 return True
@@ -119,7 +119,7 @@ class PartBupVts(PartIfoVts):
 class PartVob(PartFile):
     def adjust_other_special(self, other, all):
         if isinstance(other, PartIfo):
-            if self.begin <= other.begin and other.begin < self.end:
+            if self.begin <= other.begin and other.begin < self.end and self.end <= other.end:
                 logging.debug('Overlap between %r and %r, adjusting', self, other)
                 self.end = other.begin
                 return True
