@@ -155,7 +155,7 @@ class PartMeta(Part):
         self.begin, self.end = begin, end
 
 
-def main(input, output):
+def main(progress, input, output):
     media = MediaUdf(input)
     part = media.udf.volume.partitions[0]
 
@@ -170,8 +170,7 @@ def main(input, output):
 
     image_length = part.location + part.length
 
-    progress = ProgressStream(sys.stdout, image_length // 512)
-    logging.root.handlers[0].stream = progress
+    progress.set_total(image_length // 512)
 
     parts = [PartIfoVmg(vmg.fileset.ifo),
             PartMenuVob(vmg.fileset.menu_vob),
@@ -232,5 +231,6 @@ def main(input, output):
     progress.close()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    main(*sys.argv[1:3])
+    progress = ProgressStream(sys.stdout)
+    logging.basicConfig(level=logging.DEBUG, stream=progress)
+    main(progress, *sys.argv[1:3])

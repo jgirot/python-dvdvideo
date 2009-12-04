@@ -1,35 +1,46 @@
 class ProgressStream(object):
-    def __init__(self, stream, total, count=0):
+    def __init__(self, stream, total=-1, count=0):
         self.stream = stream
         self.total = total
-        self.count = 0
+        self.count = count
 
         self.meter_ticks = 60
-        self.meter_division = self.total / self.meter_ticks
 
-        self.update(count)
+        self._display()
 
     def _clear(self):
         self.stream.write(chr(27) + '[M')
         self.stream.write(chr(27) + '[G')
 
     def _display(self):
-        value = int(self.count / self.meter_division)
-        bar = '-' * value
-        pad = ' ' * (self.meter_ticks - value)
-        perc = self.count / self.total * 100
-        meter = '[%s>%s] %d/%d %d%%' % (bar, pad, self.count, self.total, perc)
+        value = int(self.count / self.total * self.meter_ticks)
 
-        self.stream.write(meter)
+        meter = ['[%s>%s]' % ('-' * value, ' ' * (self.meter_ticks - value))]
+
+        if self.total > 0:
+            perc = self.count / self.total * 100
+            meter.append('%d/%d %d%%' % (self.count, self.total, perc))
+        else:
+            meter.append('%d' % self.count)
+
+        self.stream.write(' '.join(meter))
         self.stream.flush()
 
     def close(self):
         self._clear()
 
-    def update(self, count):
-        self.count = min(self.count + count, self.total)
+    def set(self, count):
+        self.count = min(count, self.total)
         self._clear()
         self._display()
+
+    def set_total(self, total):
+        self.total = total
+        self._clear()
+        self._display()
+
+    def update(self, count):
+        self.set(self.count + count)
 
     def write(self, str):
         self._clear()
