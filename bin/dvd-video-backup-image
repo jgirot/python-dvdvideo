@@ -48,16 +48,6 @@ class Part(object):
         return self._dump_iter(media)
 
 
-class PartFile(Part):
-    def __init__(self, file):
-        if isinstance(file, (list, tuple)):
-            self.begin = file[0].location
-            file = file[-1]
-        else:
-            self.begin = file.location
-        self.end = file.location + file.length
-
-
 class PartVmgCopy(object):
     def _dump_iter(self, media):
         r = bytearray(self._dump_read(media, 0, 1))
@@ -76,7 +66,11 @@ class PartVmgCopy(object):
             yield r
 
 
-class PartIfo(PartFile):
+class PartIfo(Part):
+    def __init__(self, file):
+        self.begin = file.location
+        self.end = file.location + file.length
+
     def check(self, other):
         if isinstance(other, PartIfo):
             if self.begin >= other.begin and self.end <= other.end:
@@ -96,7 +90,11 @@ class PartIfoVts(PartIfo):
     pass
 
 
-class PartBup(PartFile):
+class PartBup(Part):
+    def __init__(self, file):
+        self.begin = file.location
+        self.end = file.location + file.length
+
     def check(self, other):
         if isinstance(other, PartIfo):
             if (self.begin <= other.begin and other.begin < self.end or
@@ -122,7 +120,7 @@ class PartBupVts(PartBup):
     pass
 
 
-class PartVob(PartFile):
+class PartVob(Part):
     def check(self, other):
         if isinstance(other, (PartIfo, PartBup)):
             if self.begin <= other.begin and other.begin < self.end:
@@ -154,6 +152,19 @@ class PartVob(PartFile):
         return self._dump_iter(media)
 
 
+class PartMenuVob(PartVob):
+    def __init__(self, file):
+        self.begin = file.location
+        self.end = file.location + file.length
+
+
+class PartTitleVob(PartVob):
+    def __init__(self, file):
+        self.begin = file[0].location
+        file = file[-1]
+        self.end = file.location + file.length
+
+
 class PartMeta(Part):
     def __init__(self, begin, end):
         self.begin, self.end = begin, end
@@ -178,14 +189,14 @@ def main(input, output):
     logging.root.handlers[0].stream = progress
 
     parts = [PartIfoVmg(vmg.fileset.ifo),
-            PartVob(vmg.fileset.menu_vob),
+            PartMenuVob(vmg.fileset.menu_vob),
             PartBupVmg(vmg.fileset.bup)]
 
     for i in vts:
         parts.append(PartIfoVts(i.fileset.ifo))
         if i.fileset.menu_vob:
-            parts.append(PartVob(i.fileset.menu_vob))
-        parts.append(PartVob(i.fileset.title_vob))
+            parts.append(PartMenuVob(i.fileset.menu_vob))
+        parts.append(PartTitleVob(i.fileset.title_vob))
         if i.bup:
             parts.append(PartBupVts(i.fileset.bup))
 
