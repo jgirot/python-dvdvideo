@@ -48,7 +48,45 @@ class Part(object):
         return self._dump_iter(media)
 
 
-class PartVmgCopy(object):
+class PartFile(Part):
+    def adjust_other(self, other, all):
+        if isinstance(other, self.__class__):
+            if self.begin <= other.begin and self.end >= other.end:
+                logging.debug('Overlap between %r and %r, removing', self, other)
+                all.remove(other)
+                return True
+            if self.begin <= other.begin and other.begin < self.end:
+                logging.debug('Partial overlap between %r and %r, adjusting and removing', self, other)
+                self.end = other.end
+                all.remove(other)
+                return True
+        return self.adjust_other_special(other, all)
+
+    def adjust_other_special(self, other, all):
+        pass
+
+    def adjust_self(self, all):
+        if self.begin == self.end:
+            logging.debug('Size 0 in %r, removing', self)
+            all.remove(self)
+            return True
+
+    def check(self, all):
+        for other in all:
+            if self is other:
+                continue
+            if (self.begin <= other.begin and other.begin < self.end or
+                self.begin < other.end and other.end <= self.end):
+                raise RuntimeError('Overlap between %r and %r' % (self, other))
+
+
+class PartIfo(PartFile):
+    def __init__(self, file):
+        self.begin = file.location
+        self.end = file.location + file.length
+
+
+class PartIfoVmg(PartIfo):
     def _dump_iter(self, media):
         r = bytearray(self._dump_read(media, 0, 1))
         r[35] = 0
@@ -66,78 +104,25 @@ class PartVmgCopy(object):
             yield r
 
 
-class PartIfo(Part):
-    def __init__(self, file):
-        self.begin = file.location
-        self.end = file.location + file.length
-
-    def check(self, other):
-        if isinstance(other, PartIfo):
-            if self.begin >= other.begin and self.end <= other.end:
-                logging.debug('Overlap between %r and %r, removing', self, other)
-                return True
-        else:
-            if (self.begin <= other.begin and other.begin < self.end or
-                self.begin < other.end and other.end <= self.end):
-                raise RuntimeError('Overlap between %r and %r' % (self, other))
-
-
-class PartIfoVmg(PartVmgCopy, PartIfo):
-    pass
-
-
 class PartIfoVts(PartIfo):
     pass
 
 
-class PartBup(Part):
-    def __init__(self, file):
-        self.begin = file.location
-        self.end = file.location + file.length
+class PartBupVmg(PartIfoVmg):
+    pass
 
-    def check(self, other):
+
+class PartBupVts(PartIfoVts):
+    pass
+
+
+class PartVob(PartFile):
+    def adjust_other_special(self, other, all):
         if isinstance(other, PartIfo):
-            if (self.begin <= other.begin and other.begin < self.end or
-                self.begin < other.end and other.end <= self.end):
-                raise RuntimeError('Overlap between %r and %r' % (self, other))
-        elif isinstance(other, PartBup):
-            if self.begin >= other.begin and self.end <= other.end:
-                logging.debug('Overlap between %r and %r, removing', self, other)
-                return self
-            elif other.begin >= self.begin and other.end <= self.end:
-                logging.debug('Overlap between %r and %r, removing', self, other)
-                return other
-        elif isinstance(other, PartVob):
-            if self.begin <= other.begin and other.begin < self.end:
-                raise RuntimeError('Overlap between %r and %r' % (self, other))
-
-
-class PartBupVmg(PartVmgCopy, PartBup):
-    pass
-
-
-class PartBupVts(PartBup):
-    pass
-
-
-class PartVob(Part):
-    def check(self, other):
-        if isinstance(other, (PartIfo, PartBup)):
             if self.begin <= other.begin and other.begin < self.end:
                 logging.debug('Overlap between %r and %r, adjusting', self, other)
                 self.end = other.begin
-        elif isinstance(other, PartVob):
-            if self.begin >= other.begin:
-                if self.end <= other.end:
-                    logging.debug('Overlap between %r and %r, removing', self, other)
-                    return self
-            elif other.begin >= self.begin:
-                if other.end <= self.end:
-                    logging.debug('Overlap between %r and %r, removing', self, other)
-                    return other
-            elif (self.begin <= other.begin and other.begin < self.end or
-                  self.begin < other.end and other.end <= self.end):
-                raise RuntimeError('Overlap between %r and %r' % (self, other))
+                return True
 
     def _dump_read(self, media, cur, count):
         try:
@@ -203,15 +188,18 @@ def main(input, output):
     logging.debug('parts: %r', parts)
 
     parts_removed = []
+    changed = True
+    while changed:
+        changed = False
+        for i in parts:
+            if i.adjust_self(parts):
+                changed = True
+            for j in parts:
+                if i is not j:
+                    if i.adjust_other(j, parts):
+                        changed = True
     for i in parts:
-        for j in parts:
-            if i is not j and j not in parts_removed:
-                to_remove = i.check(j)
-                if to_remove:
-                    parts_removed.append(to_remove)
-
-    parts = [i for i in parts if i not in parts_removed]
-    parts.sort()
+        i.check(parts)
 
     logging.debug('parts: %r', parts)
 
