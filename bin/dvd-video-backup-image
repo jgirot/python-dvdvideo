@@ -3,7 +3,7 @@ import sys
 import logging
 
 from dvdvideo.media import MediaUdf
-from dvdvideo.utils import ProgressStream
+from dvdvideo.utils import ProgressMeter, ProgressStream
 from dvdvideo.volume import MalformedVolumePartError
 
 
@@ -155,7 +155,7 @@ class PartMeta(Part):
         self.begin, self.end = begin, end
 
 
-def main(progress, input, output):
+def main(stream, input, output):
     media = MediaUdf(input)
     part = media.udf.volume.partitions[0]
 
@@ -170,7 +170,7 @@ def main(progress, input, output):
 
     image_length = part.location + part.length
 
-    progress.set_total(image_length // 512)
+    progress = ProgressMeter(stream, image_length // 512)
 
     parts = [PartIfoVmg(vmg.fileset.ifo),
             PartMenuVob(vmg.fileset.menu_vob),
@@ -229,12 +229,14 @@ def main(progress, input, output):
         logging.debug('part end, written %d', cur)
 
 if __name__ == '__main__':
-    progress = ProgressStream(sys.stdout)
-    logging.basicConfig(level=logging.DEBUG, stream=progress)
+    stream = ProgressStream(sys.stdout)
+    logging.basicConfig(level=logging.DEBUG, stream=stream)
     try:
-        main(progress, *sys.argv[1:3])
+        try:
+            main(stream, *sys.argv[1:3])
+        finally:
+            stream.clear_meter()
     except KeyboardInterrupt as e:
         logging.warning('Interrupted')
     except Exception as e:
         logging.exception("Got exception")
-    progress.close()
