@@ -9,5 +9,5 @@ setup(
         author_email='waldi@debian.org',
         packages=('dvdvideo', 'dvdvideo.udf'),
         package_dir = {'': 'lib'},
-        scripts=('bin/dvd-video-backup-image', ),
+        scripts=('bin/dvdvideo-backup-image', ),
 )
