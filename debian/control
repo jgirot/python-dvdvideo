@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 7.0.50~), python3
 Standards-Version: 3.8.4
 XS-Python-Version: 3.1
 
-Package: python-dvdvideo
+Package: python3-dvdvideo
 Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends}
 Description: Video DVD reader library
