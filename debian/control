@@ -1,0 +1,11 @@
+Source: python-dvdvideo
+Section: python
+Priority: extra
+Maintainer: Bastian Blank <waldi@debian.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+
+Package: python-dvdvideo
+Architecture: all
+Depends: ${misc:Depends}
+Description: Video DVD reader library
