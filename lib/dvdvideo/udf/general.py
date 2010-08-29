@@ -35,14 +35,11 @@ class DescriptorTag(object):
 
 class OSTACompressedUnicode(str):
     def __new__(self, buf):
-        type = buf[0]
+        stype = buf[0]
 
-        if type == 8:
-            s = []
-            for i in buf[1:]:
-                s.append(chr(i))
-            return str(''.join(s))
-        elif type == 16:
+        if stype == 8:
+            return buf[1:].decode()
+        elif stype == 16:
             raise NotImplementedError
         raise RuntimeError
 
