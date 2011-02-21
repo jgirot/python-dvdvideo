@@ -35,17 +35,18 @@ class Vts(object):
 class VmgUdf(Vmg):
     def __init__(self, media):
         try:
-            file_ifo = media.file('VIDEO_TS.IFO')
-            file_bup = media.file('VIDEO_TS.BUP')
-            file_vob = media.file('VIDEO_TS.VOB')
+            file_ifo = media['VIDEO_TS.IFO']
+            file_bup = media['VIDEO_TS.BUP']
         except KeyError as e:
-            raise MalformedVolumePartError('Missing file %s' % e.args[0])
+            raise MalformedVolumePartError('Missing file %s' % e.args[0]) from e
+
+        file_vob = media.get('VIDEO_TS.VOB')
 
         self.fileset = FileSetUdf(media, file_ifo, file_bup, file_vob)
 
         self.ifo = VmgIfo(self.fileset.ifo)
         self.bup = VmgIfo(self.fileset.bup)
-        self.menu_vob = MenuVob(self.fileset.menu_vob)
+        self.menu_vob = file_vob and MenuVob(self.fileset.menu_vob)
 
     def dump(self):
         return iter(self.fileset)
@@ -56,20 +57,17 @@ class VtsUdf(Vmg):
         prefix = 'VTS_%02d' % titleset
 
         try:
-            file_ifo = media.file('%s_0.IFO' % prefix)
-            file_bup = media.file('%s_0.BUP' % prefix)
+            file_ifo = media['%s_0.IFO' % prefix]
+            file_bup = media['%s_0.BUP' % prefix]
         except KeyError as e:
             raise MalformedVolumePartError('Missing file %s' % e.args[0])
 
-        try:
-            file_menu_vob = media.file('%s_0.VOB' % prefix)
-        except KeyError:
-            file_menu_vob = None
+        file_menu_vob = media.get('%s_0.VOB' % prefix)
 
         file_title_vob = []
         for i in range(1, 10):
             try:
-                vob = media.file('%s_%d.VOB' % (prefix, i))
+                vob = media['%s_%d.VOB' % (prefix, i)]
                 file_title_vob.append(vob)
             except KeyError:
                 break

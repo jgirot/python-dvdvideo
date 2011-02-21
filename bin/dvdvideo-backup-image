@@ -189,9 +189,11 @@ def main(stream, input, output):
 
     progress = ProgressMeter(stream, image_length // 512)
 
-    parts = [PartIfoVmg(vmg.fileset.ifo),
-            PartMenuVob(vmg.fileset.menu_vob),
-            PartBupVmg(vmg.fileset.bup)]
+    parts = []
+    parts.append(PartIfoVmg(vmg.fileset.ifo))
+    if vmg.fileset.menu_vob:
+        parts.append(PartMenuVob(vmg.fileset.menu_vob))
+    parts.append(PartBupVmg(vmg.fileset.bup))
 
     for i in vts:
         parts.append(PartIfoVts(i.fileset.ifo))

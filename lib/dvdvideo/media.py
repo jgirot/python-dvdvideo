@@ -65,12 +65,18 @@ class MediaUdf(Media):
         self.udf = Media(f)
         self.video_dir = self.udf.volume.partitions[0].fileset.root.tree['VIDEO_TS'].entry.tree
 
-    def file(self, name):
-        f = self.video_dir[name]
+    def __getitem__(self, name):
+        f = self.get(name)
+        if not f:
+            raise KeyError(name)
+        return f
 
+    def get(self, name, default=None):
+        f = self.video_dir.get(name)
+        if not f:
+            return default
         if len(f.entry.ad) > 1:
             raise NotImplementedError
-
         return f
 
     def vmg(self):
