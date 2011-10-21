@@ -4,7 +4,8 @@ Priority: extra
 Maintainer: Bastian Blank <waldi@debian.org>
 Build-Depends: debhelper (>= 7.0.50~), python3
 Standards-Version: 3.9.2
-XS-Python-Version: 3.1
+X-Python-Version: >= 2.6
+X-Python3-Version: >= 3.1
 
 Package: python3-dvdvideo
 Architecture: all
