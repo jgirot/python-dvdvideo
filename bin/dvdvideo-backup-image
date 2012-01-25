@@ -53,7 +53,7 @@ class Part(object):
         try:
             return media.read(count)
         except IOError:
-            logging.debug('Read error at %d', self.begin + cur)
+            logging.info('Read error at %d, padding with zeroes', self.begin + cur)
             self._dump_seek(media, cur + count)
             return bytes(count * 2048)
 
