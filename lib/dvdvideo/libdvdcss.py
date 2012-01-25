@@ -29,7 +29,7 @@ _dvdcss_read = CFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int)(('dvdcss_read'
 
 class DvdCssFile(object):
     def __init__(self, filename):
-        self._handle = _dvdcss_open(filename)
+        self._handle = _dvdcss_open(filename.encode('utf-8'))
         if not self._handle:
             raise RuntimeError
         self._cur = 0
