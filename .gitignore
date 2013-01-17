@@ -1,4 +1,4 @@
-*.pyc
-build/
-debian/files
-debian/python3-dvdvideo*
+__pycache__
+/build
+/debian/files
+/debian/python3-dvdvideo*
