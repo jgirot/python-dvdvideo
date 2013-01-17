@@ -2,10 +2,9 @@ Source: python-dvdvideo
 Section: python
 Priority: extra
 Maintainer: Bastian Blank <waldi@debian.org>
-Build-Depends: debhelper (>= 7.0.50~), python3
-Standards-Version: 3.9.2
-X-Python-Version: >= 2.6
-X-Python3-Version: >= 3.1
+Build-Depends: debhelper (>= 9.0.0), python3, python3.2
+Standards-Version: 3.9.4
+X-Python3-Version: 3.2
 
 Package: python3-dvdvideo
 Architecture: all
