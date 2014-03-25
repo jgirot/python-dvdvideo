@@ -38,10 +38,10 @@ class OSTACompressedUnicode(str):
         stype = buf[0]
 
         if stype == 8:
-            return buf[1:].decode()
+            return buf[1:].decode('utf-8')
         elif stype == 16:
-            raise NotImplementedError
-        raise RuntimeError
+            return buf[1:].decode('utf-16be')
+        raise ValueError
 
 
 class ExtentAD(object):
