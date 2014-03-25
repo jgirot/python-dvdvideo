@@ -17,7 +17,7 @@
 from .volume import Volume
 
 
-class Media(object):
+class Media:
     def __init__(self, file):
         self._file = file
         self._sector_size = 2048
@@ -27,11 +27,9 @@ class Media(object):
         return self._file.read(count_align)
 
     def read_sector(self, offset, count=2048):
-        self.seek(offset)
+        offset_bytes = offset * self._sector_size
+        self._file.seek(offset_bytes)
         return self.read(count)
-
-    def seek(self, offset):
-        return self._file.seek(offset * self._sector_size)
 
     @property
     def volume(self):
