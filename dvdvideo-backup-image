@@ -276,5 +276,4 @@ if __name__ == '__main__':
             stream.clear_meter()
     except KeyboardInterrupt as e:
         logging.warning('Interrupted')
-    except Exception as e:
-        logging.exception("Got exception")
+        sys.exit(1)
