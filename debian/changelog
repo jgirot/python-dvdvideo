@@ -1,3 +1,10 @@
+python-dvdvideo (0.20140406) UNRELEASED; urgency=medium
+
+  * Support 16-bit strings. (closes: #720831)
+  * Fix exit value in case of an exception. (closes: #723079)
+
+ -- Bastian Blank <waldi@debian.org>  Sun, 06 Apr 2014 10:03:05 +0200
+
 python-dvdvideo (0.20130117+nmu1) unstable; urgency=low
 
   * Non-maintainer upload.
