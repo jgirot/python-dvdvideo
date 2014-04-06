@@ -27,7 +27,7 @@ _dvdcss_seek = CFUNCTYPE(c_int, c_void_p, c_int, c_int)(('dvdcss_seek', _libdvdc
 _dvdcss_read = CFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int)(('dvdcss_read', _libdvdcss))
 
 
-class DvdCssFile(object):
+class DvdCssFile:
     def __init__(self, filename):
         self._handle = _dvdcss_open(filename.encode('utf-8'))
         if not self._handle:

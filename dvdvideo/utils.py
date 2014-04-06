@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class ProgressMeter(object):
+
+class ProgressMeter:
     def __init__(self, stream, total, count=0):
         self.stream = stream
         self.total = total
@@ -50,7 +51,7 @@ class ProgressMeter(object):
         self.display()
 
 
-class ProgressStream(object):
+class ProgressStream:
     def __init__(self, stream):
         self.stream = stream
 

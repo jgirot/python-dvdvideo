@@ -33,7 +33,7 @@ class ShortADPartition(ShortAD):
         self.location_absolute = partition.location + self.location
 
 
-class ICBTag(object):
+class ICBTag:
     _struct = struct.Struct('<8x3xB6xH')
 
     def __init__(self, buf):
@@ -47,7 +47,7 @@ class ICBTag(object):
                 )
 
 
-class FileSet(object):
+class FileSet:
     _lazy = 'root',
     _struct = struct.Struct('<16x384x16s')
 
@@ -76,7 +76,7 @@ class FileSet(object):
         self.root = FileEntry(self._media, self._volume, self._partition_nr, tag, buf)
 
 
-class FileEntry(object):
+class FileEntry:
     _lazy = 'tree',
     _struct = struct.Struct('<16x20s20xQ104xII')
 
@@ -146,7 +146,7 @@ class FileEntry(object):
         self.tree = tree
 
 
-class FileIdentifier(object):
+class FileIdentifier:
     _lazy = 'entry',
     _struct = struct.Struct('<16x3xB16sH')
 

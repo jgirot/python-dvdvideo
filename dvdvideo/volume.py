@@ -86,8 +86,8 @@ class VtsUdf:
         return iter(self.fileset)
 
 
-class FileSetUdf(object):
-    class File(object):
+class FileSetUdf:
+    class File:
         def __init__(self, media, name, location, length):
             self._media, self.name, self.location, self.length = media, name, location, length
 

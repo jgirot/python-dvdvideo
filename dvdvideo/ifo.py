@@ -21,7 +21,7 @@ class MalformedIfoHeaderError(Exception):
     pass
 
 
-class VmgIfoHeader(object):
+class VmgIfoHeader:
     _struct = struct.Struct('>12s I 12x IHI 24x H 32x Q 24x II 56x IIIIIIII 32x 1792x')
 
     def __init__(self, buf):
@@ -49,7 +49,7 @@ class VmgIfoHeader(object):
             raise MalformedIfoHeaderError
 
 
-class VtsIfoHeader(object):
+class VtsIfoHeader:
     _struct = struct.Struct('>12s I 12x IH 94x I 60x IIIIIIIIII 24x 1792x')
 
     def __init__(self, buf):
@@ -76,7 +76,7 @@ class VtsIfoHeader(object):
             raise MalformedIfoHeaderError
 
 
-class _Ifo(object):
+class _Ifo:
     def dump(self):
         return self._file.dump(self.header.part_ifo_end + 1),
 

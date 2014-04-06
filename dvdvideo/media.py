@@ -22,7 +22,7 @@ from .volume import VmgUdf, VtsUdf
 
 
 class MediaUdf(collections.abc.Mapping):
-    class File(object):
+    class File:
         def __init__(self, filename):
             f = open(filename, 'rb')
             self.close = f.close

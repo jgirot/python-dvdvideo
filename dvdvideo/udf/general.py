@@ -17,7 +17,7 @@
 import struct
 
 
-class DescriptorTag(object):
+class DescriptorTag:
     _struct = struct.Struct('<HHBxHHHI')
 
     def __init__(self, buf):
@@ -44,7 +44,7 @@ class OSTACompressedUnicode(str):
         raise ValueError
 
 
-class ExtentAD(object):
+class ExtentAD:
     _struct = struct.Struct('<II8xH2x')
     size = _struct.size
 
@@ -63,7 +63,7 @@ class ExtentAD(object):
                 )
 
 
-class LongAD(object):
+class LongAD:
     _struct = struct.Struct('<IIH6x')
     size = _struct.size
 
@@ -82,7 +82,7 @@ class LongAD(object):
                 )
 
 
-class ShortAD(object):
+class ShortAD:
     _struct = struct.Struct('<II')
     size = _struct.size
 

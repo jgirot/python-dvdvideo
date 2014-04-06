@@ -19,7 +19,7 @@ import struct
 from .general import DescriptorTag, ExtentAD
 
 
-class AnchorVolumeDescriptorPointer(object):
+class AnchorVolumeDescriptorPointer:
     _struct = struct.Struct('<16x20s20s')
 
     def __init__(self, tag, buf):
@@ -46,7 +46,7 @@ def _DescriptorSequence(media, location, length):
         cur += 2048
 
 
-class Volume(object):
+class Volume:
     _lazy = 'partitions',
 
     def __init__(self, media):
@@ -86,7 +86,7 @@ class Volume(object):
         self.partitions = data
 
 
-class Partition(object):
+class Partition:
     _lazy = 'fileset'
     _struct = struct.Struct('<16x4xHH164xII316x')
 

@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-class MenuVob(object):
+class MenuVob:
     def __init__(self, file):
         self._file = file
 
@@ -23,7 +23,7 @@ class MenuVob(object):
         return self._file.dump(),
 
 
-class TitleVob(object):
+class TitleVob:
     def __init__(self, files):
         self._files = files
 
