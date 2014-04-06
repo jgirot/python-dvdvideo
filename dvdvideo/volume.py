@@ -24,15 +24,7 @@ class MalformedVolumePartError(Exception):
     pass
 
 
-class Vmg(object):
-    pass
-
-
-class Vts(object):
-    pass
-
-
-class VmgUdf(Vmg):
+class VmgUdf:
     def __init__(self, media):
         try:
             file_ifo = media['VIDEO_TS.IFO']
@@ -52,7 +44,7 @@ class VmgUdf(Vmg):
         return iter(self.fileset)
 
 
-class VtsUdf(Vmg):
+class VtsUdf:
     def __init__(self, media, titleset):
         prefix = 'VTS_%02d' % titleset
 
