@@ -205,7 +205,6 @@ def main(stream, input, output):
 
     logging.debug('parts: %r', parts)
 
-    parts_removed = []
     changed = True
     while changed:
         changed = False
