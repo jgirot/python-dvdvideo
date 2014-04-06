@@ -14,17 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import collections.abc
 import os
 import stat
 
 from .volume import VmgUdf, VtsUdf
 
 
-class Media(object):
-    pass
-
-
-class MediaUdf(Media):
+class MediaUdf(collections.abc.Mapping):
     class File(object):
         def __init__(self, filename):
             f = open(filename, 'rb')
@@ -66,18 +63,16 @@ class MediaUdf(Media):
         self.video_dir = self.udf.volume.partitions[0].fileset.root.tree['VIDEO_TS'].entry.tree
 
     def __getitem__(self, name):
-        f = self.get(name)
-        if not f:
-            raise KeyError(name)
-        return f
-
-    def get(self, name, default=None):
-        f = self.video_dir.get(name)
-        if not f:
-            return default
+        f = self.video_dir[name]
         if len(f.entry.ad) > 1:
             raise NotImplementedError
         return f
+
+    def __iter__(self):
+        return iter(self.video_dir)
+
+    def __len__(self):
+        return len(self.video_dir)
 
     def vmg(self):
         return VmgUdf(self)
