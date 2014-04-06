@@ -1,3 +1,11 @@
+python-dvdvideo (0.20130117+nmu1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Remove hard coded build-dep on python3.2 to fix FTBFS now that python3.3
+    is the default python3 (Closes: #710370)
+
+ --  Dmitry Shachnev <mitya57@gmail.com>  Sun, 04 Aug 2013 19:25:43 -0400
+
 python-dvdvideo (0.20130117) unstable; urgency=low
 
   * Initial release.
