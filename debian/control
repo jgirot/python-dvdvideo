@@ -3,7 +3,7 @@ Section: python
 Priority: extra
 Maintainer: Bastian Blank <waldi@debian.org>
 Build-Depends: debhelper (>= 9.0.0), python3, python3-pytest
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 X-Python3-Version: >= 3.2
 
 Package: python3-dvdvideo
