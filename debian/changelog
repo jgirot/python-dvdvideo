@@ -3,6 +3,7 @@ python-dvdvideo (0.20140406) UNRELEASED; urgency=medium
   * Support 16-bit strings. (closes: #720831)
   * Fix exit value in case of an exception. (closes: #723079)
   * Run tests during build.
+  * Consider main and backup info files the same. (closes: #723079)
 
  -- Bastian Blank <waldi@debian.org>  Sun, 06 Apr 2014 10:03:05 +0200
 

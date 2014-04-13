@@ -125,14 +125,6 @@ class PartIfoVts(PartIfo):
     pass
 
 
-class PartBupVmg(PartIfoVmg):
-    pass
-
-
-class PartBupVts(PartIfoVts):
-    pass
-
-
 class PartVob(PartFile):
     def adjust_other_special(self, other, all):
         if isinstance(other, PartIfo):
@@ -193,7 +185,7 @@ def main(stream, input, output):
     parts.append(PartIfoVmg(vmg.fileset.ifo))
     if vmg.fileset.menu_vob:
         parts.append(PartMenuVob(vmg.fileset.menu_vob))
-    parts.append(PartBupVmg(vmg.fileset.bup))
+    parts.append(PartIfoVmg(vmg.fileset.bup))
 
     for i in vts:
         parts.append(PartIfoVts(i.fileset.ifo))
@@ -201,7 +193,7 @@ def main(stream, input, output):
             parts.append(PartMenuVob(i.fileset.menu_vob))
         parts.append(PartTitleVob(i.fileset.title_vob))
         if i.bup:
-            parts.append(PartBupVts(i.fileset.bup))
+            parts.append(PartIfoVts(i.fileset.bup))
 
     logging.debug('parts: %r', parts)
 
