@@ -1,4 +1,4 @@
-python-dvdvideo (0.20140413) UNRELEASED; urgency=medium
+python-dvdvideo (0.20140413) unstable; urgency=medium
 
   * Support 16-bit strings. (closes: #720831)
   * Fix exit value in case of an exception. (closes: #723079)
@@ -6,7 +6,7 @@ python-dvdvideo (0.20140413) UNRELEASED; urgency=medium
   * Consider main and backup info files the same. (closes: #723079)
   * Set Standards-Version to 3.9.5, no changes.
 
- -- Bastian Blank <waldi@debian.org>  Sun, 06 Apr 2014 10:03:05 +0200
+ -- Bastian Blank <waldi@debian.org>  Sun, 13 Apr 2014 13:35:59 +0000
 
 python-dvdvideo (0.20130117+nmu1) unstable; urgency=low
 
